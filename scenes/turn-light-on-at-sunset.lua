@@ -5,12 +5,15 @@
 %% events
 %% globals
 --]]
-
+--
 -- Tänder när:
 --  * alla dagar i veckan,
 --  * 90 minunter före solnedgång och
 --  * om ingen scen är körd manuellt sedan morgonen kl. 03:00
 --    styrs av logiska variabeln isLightSceneManSet som sätts i manuell scener
+-- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
+--  Titel: Tänd solnedgång
+--  Innehåll: Lampor tändes 90 min innan solnedgång
 
 local currentDate = os.date("*t")
 if
@@ -22,6 +25,8 @@ if
         fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
  then
     fibaro:startScene(22)
+    fibaro:call(4, "sendDefinedPushNotification", "76")
+    fibaro:call(15, "sendDefinedPushNotification", "76")
 end
 
 setTimeout(tempFunc, 60 * 1000)
