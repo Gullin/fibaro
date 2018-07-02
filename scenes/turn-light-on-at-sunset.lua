@@ -15,18 +15,40 @@
 --  Titel: Tänd solnedgång
 --  Innehåll: Lampor tändes 90 min innan solnedgång
 
-local currentDate = os.date("*t")
-if
-    (((currentDate.wday == 1 or currentDate.wday == 2 or currentDate.wday == 3 or currentDate.wday == 4 or
-        currentDate.wday == 5 or
-        currentDate.wday == 6 or
-        currentDate.wday == 7) and
-        os.date("%H:%M", os.time() + 90 * 60) == fibaro:getValue(1, "sunsetHour")) and
-        fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
- then
-    fibaro:startScene(22)
-    fibaro:call(4, "sendDefinedPushNotification", "76")
-    fibaro:call(15, "sendDefinedPushNotification", "76")
+local sourceTrigger = fibaro:getSourceTrigger()
+function tempFunc()
+    local currentDate = os.date("*t")
+    local startSource = fibaro:getSourceTrigger()
+    if
+        (((currentDate.wday == 1 or currentDate.wday == 2 or currentDate.wday == 3 or currentDate.wday == 4 or
+            currentDate.wday == 5 or
+            currentDate.wday == 6 or
+            currentDate.wday == 7) and
+            os.date("%H:%M", os.time() + 90 * 60) == fibaro:getValue(1, "sunsetHour")) and
+            fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
+     then
+        fibaro:startScene(22)
+        fibaro:call(4, "sendDefinedPushNotification", "76")
+        fibaro:call(15, "sendDefinedPushNotification", "76")
+    end
+
+    setTimeout(tempFunc, 60 * 1000)
 end
 
-setTimeout(tempFunc, 60 * 1000)
+if (sourceTrigger["type"] == "autostart") then
+    tempFunc()
+else
+    local currentDate = os.date("*t")
+    if
+        (((currentDate.wday == 1 or currentDate.wday == 2 or currentDate.wday == 3 or currentDate.wday == 4 or
+            currentDate.wday == 5 or
+            currentDate.wday == 6 or
+            currentDate.wday == 7) and
+            os.date("%H:%M", os.time() + 90 * 60) == fibaro:getValue(1, "sunsetHour")) and
+            fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
+     then
+        fibaro:startScene(22)
+        fibaro:call(4, "sendDefinedPushNotification", "76")
+        fibaro:call(15, "sendDefinedPushNotification", "76")
+    end
+end
