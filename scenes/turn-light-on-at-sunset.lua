@@ -35,7 +35,7 @@ function tempFunc()
             os.date("%H:%M", os.time() + minBeforeDusk * 60) == fibaro:getValue(1, "sunsetHour")) and
             fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
      then
-        fibaro:startScene(22)
+        fibaro:startScene(22) -- Vardag lätt sovbarn-sys
         fibaro:call(4, "sendDefinedPushNotification", "76")
         fibaro:call(15, "sendDefinedPushNotification", "76")
     end
