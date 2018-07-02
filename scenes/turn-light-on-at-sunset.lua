@@ -13,10 +13,16 @@
 --  Titel: Tänd solnedgång
 --  Innehåll: Lampor tändes 90 min innan solnedgång
 
-
 -- minuter före solnedgång från global variabel annars 90 min.
-local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"));
-if (minBeforeDusk == nil) then minBeforeDusk = 90 end
+local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"))
+if (minBeforeDusk == nil) then
+    minBeforeDusk = 90
+end
+
+-- döda ev. extra instans av samma scen
+if (fibaro:countScenes() > 1) then
+    fibaro:abort()
+end
 
 local sourceTrigger = fibaro:getSourceTrigger()
 function tempFunc()
