@@ -3,12 +3,15 @@
 %% events
 --]]
 --
+-- CP Windows 1252
 -- Tänder när:
 --  * alla dagar i veckan,
 --  * 90 minunter innan solnedgång styrs med variabel sunsetHour,
 --    om ej definierad gäller 90 minunter som standard och
 --  * om ingen scen är körd manuellt sedan morgonen kl. 03:00
 --    styrs av logiska variabeln isLightSceneManSet som sätts i manuell scener
+--  * tänder "Vardag lätt sovbarn-sys" om det tänds efter 19:00
+--  * annars tänds scen "Vardag lätt-sys"
 -- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
 --  Titel: Tänd solnedgång
 --  Innehåll: Lampor tändes 90 min innan solnedgång
@@ -18,6 +21,8 @@ local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"))
 if (minBeforeDusk == nil) then
     minBeforeDusk = 90
 end
+-- Timme och minut när "Vardag lätt sovbarn-sys" alt. "Vardag lätt-sys" ska användas
+local hourNotToLight, minuteNotToLight = 19, 00;
 
 -- döda ev. extra instans av samma scen
 if (fibaro:countScenes() > 1) then
@@ -35,7 +40,25 @@ function tempFunc()
             os.date("%H:%M", os.time() + minBeforeDusk * 60) == fibaro:getValue(1, "sunsetHour")) and
             fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
      then
-        fibaro:startScene(22) -- Vardag lätt sovbarn-sys
+        -- om aktuell tid är större än (mer än) kl. 19:00 körs if
+        -- annars om klockan är mindre än eller lika med kl. 19:00 körs else
+        if
+            (os.time() >
+                os.time(
+                    {
+                        year = os.date("*t").year,
+                        month = os.date("*t").month,
+                        day = os.date("*t").day,
+                        hour = hourNotToLight,
+                        min = minuteNotToLight
+                    }
+                ))
+         then
+            fibaro:startScene(22) -- Vardag lätt sovbarn-sys
+        else
+            fibaro:startScene(9) -- Vardag lätt-sys
+        end
+
         fibaro:call(4, "sendDefinedPushNotification", "76")
         fibaro:call(15, "sendDefinedPushNotification", "76")
     end
