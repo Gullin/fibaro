@@ -10,7 +10,8 @@
 --    om ej definierad gäller 90 minunter som standard och
 --  * om ingen scen är körd manuellt sedan morgonen kl. 03:00
 --    styrs av logiska variabeln isLightSceneManSet som sätts i manuell scener
---  * tänder "Vardag lätt sovbarn-sys" om det tänds efter 19:00
+--  * Tänder inte senare än kl. 21:00 oavsett solnedgång
+--  * tänder "Vardag lätt sovbarn-sys" om det tänds efter kl. 19:00
 --  * annars tänds scen "Vardag lätt-sys"
 -- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
 --  Titel: Tänd solnedgång
@@ -22,7 +23,9 @@ if (minBeforeDusk == nil) then
     minBeforeDusk = 90
 end
 -- Timme och minut när "Vardag lätt sovbarn-sys" alt. "Vardag lätt-sys" ska användas
-local hourNotToLight, minuteNotToLight = 19, 00;
+local hourNotToLight, minuteNotToLight = 19, 00
+-- Timme och minut för när belysningen senast ska tända
+local hourLatestToLight, minuteLatestToLight = 21, 00
 
 -- döda ev. extra instans av samma scen
 if (fibaro:countScenes() > 1) then
@@ -32,12 +35,18 @@ end
 local sourceTrigger = fibaro:getSourceTrigger()
 function tempFunc()
     local currentDate = os.date("*t")
+    -- Hantera om sommartid (daylightsaving), lägg till en timme
+    if (currentDate.isdst) then
+        currentDate.hour = currentDate.hour + 1
+    end
+
     if
-        (((currentDate.wday == 1 or currentDate.wday == 2 or currentDate.wday == 3 or currentDate.wday == 4 or
+        ((currentDate.wday == 1 or currentDate.wday == 2 or currentDate.wday == 3 or currentDate.wday == 4 or
             currentDate.wday == 5 or
             currentDate.wday == 6 or
             currentDate.wday == 7) and
-            os.date("%H:%M", os.time() + minBeforeDusk * 60) == fibaro:getValue(1, "sunsetHour")) and
+            ((os.date("%H:%M", os.time() + minBeforeDusk * 60) == fibaro:getValue(1, "sunsetHour")) or
+                (os.date("%H:%M", os.time()) == (hourLatestToLight .. ":" .. minuteLatestToLight))) and
             fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
      then
         -- om aktuell tid är större än (mer än) kl. 19:00 körs if
