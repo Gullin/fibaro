@@ -2,15 +2,15 @@
 %% autostart
 %% events
 --]]
---
+
 -- CP Windows 1252
 -- Tänder när:
 --  * alla dagar i veckan,
---  * 90 minunter innan solnedgång styrs med variabel sunsetHour,
+--  * minuter innan solnedgång styrs med global variabel sunsetHour,
 --    om ej definierad gäller 90 minunter som standard och
---  * om ingen scen är körd manuellt sedan morgonen kl. 03:00
---    styrs av logiska variabeln isLightSceneManSet som sätts i manuell scener
---  * Tänder inte senare än kl. 21:00 oavsett solnedgång
+--  * Tänder senast kl. 21:00
+--  * om ingen scen är körd manuellt sedan morgonen kl. 03:00 eller lunch 12:00
+--    styrs av logiska variabeln isLightSceneManSet
 --  * tänder "Vardag lätt sovbarn-sys" om det tänds efter kl. 19:00
 --  * annars tänds scen "Vardag lätt-sys"
 -- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
@@ -24,7 +24,7 @@ if (minBeforeDusk == nil) then
 end
 -- Timme och minut när "Vardag lätt sovbarn-sys" alt. "Vardag lätt-sys" ska användas
 local hourNotToLight, minuteNotToLight = 19, 00
--- Timme och minut för när belysningen senast ska tända
+-- Timme och minut för när senast ska tändas
 local hourLatestToLight, minuteLatestToLight = 21, 00
 
 -- döda ev. extra instans av samma scen
