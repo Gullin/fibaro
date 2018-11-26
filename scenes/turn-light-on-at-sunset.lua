@@ -68,8 +68,8 @@ function tempFunc()
             fibaro:startScene(9) -- Vardag lätt-sys
         end
 
-        fibaro:call(4, "sendDefinedPushNotification", "76")
-        fibaro:call(15, "sendDefinedPushNotification", "76")
+        fibaro:call(tonumber(fibaro:getGlobalValue("mbDessi")), "sendDefinedPushNotification", "76");
+        fibaro:call(tonumber(fibaro:getGlobalValue("mbChrille")), "sendDefinedPushNotification", "76");
     end
 
     setTimeout(tempFunc, 60 * 1000)
