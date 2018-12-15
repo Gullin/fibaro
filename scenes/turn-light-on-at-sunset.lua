@@ -34,6 +34,8 @@ end
 
 --[[ Bottenplan, Entrehall --]]
 local BVHallEntreHylla = fibaro:getGlobalValue("BVHallEntreHylla")
+--[[ Ovanvånning --]]
+local TVRoomBureau = fibaro:getGlobalValue("TVRoomBureau")
 
 
 local sourceTrigger = fibaro:getSourceTrigger()
@@ -75,6 +77,7 @@ function tempFunc()
         -- hantering av lampor vid enheter hemma (knuten till phone-check-indicate-home)
         if tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 then  
             fibaro:call(BVHallEntreHylla, "turnOn");
+            fibaro:call(TVRoomBureau, "turnOn");
         end 
 
         fibaro:call(tonumber(fibaro:getGlobalValue("mbDessi")), "sendDefinedPushNotification", "76");
