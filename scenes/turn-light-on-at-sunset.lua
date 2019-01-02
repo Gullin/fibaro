@@ -36,6 +36,7 @@ end
 local BVHallEntreHylla = fibaro:getGlobalValue("BVHallEntreHylla")
 --[[ Ovanvånning --]]
 local TVRoomBureau = fibaro:getGlobalValue("TVRoomBureau")
+local OVGavelFonsterStor = fibaro:getGlobalValue("OVGavelFonsterStor")
 
 
 local sourceTrigger = fibaro:getSourceTrigger()
@@ -78,6 +79,7 @@ function tempFunc()
         if tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 then  
             fibaro:call(BVHallEntreHylla, "turnOn");
             fibaro:call(TVRoomBureau, "turnOn");
+            fibaro:call(OVGavelFonsterStor, "turnOn");
         end 
 
         fibaro:call(tonumber(fibaro:getGlobalValue("mbDessi")), "sendDefinedPushNotification", "76");
