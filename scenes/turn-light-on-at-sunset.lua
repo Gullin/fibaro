@@ -74,8 +74,12 @@ function tempFunc()
             fibaro:startScene(9) -- Vardag lätt-sys
         end
 
+
         -- hantering av lampor vid enheter hemma (knuten till phone-check-indicate-home)
         if tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 then  
+            -- Inväntar fortsatt körning för att öka sannolikheten att tidigare körda scener är avslutade
+            fibaro:sleep(60000);
+
             fibaro:call(BVHallEntreHylla, "turnOn");
             fibaro:call(TVRoomBureau, "turnOn");
         end 
