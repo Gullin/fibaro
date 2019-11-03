@@ -5,6 +5,7 @@
 LastSeenChristian
 LastSeenDesiree
 LastSeenHemma
+LastAutoLitForDusk
 --]] 
 
 --kill any extra instances of the same scene 
@@ -30,8 +31,10 @@ fibaro:call(GlobalVariablesDevice, "pressButton", "1"); -- Check if Christian is
 fibaro:call(GlobalVariablesDevice, "pressButton", "2"); -- Check if Desirée is at Home
 local LastSeenChristian = 0+fibaro:getGlobal("LastSeenChristian"); 
 local LastSeenDesiree = 0+fibaro:getGlobal("LastSeenDesiree");
+local LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
 fibaro:debug(" -|- LastSeenChristian: "..os.date("%Y-%m-%d %H:%M:%S",LastSeenChristian)); 
 fibaro:debug(" -|- LastSeenDesiree: "..os.date("%Y-%m-%d %H:%M:%S",LastSeenDesiree));
+fibaro:debug(" -|- LastAutoLitForDusk: "..os.date("%Y-%m-%d %H:%M:%S",LastAutoLitForDusk));
 
 -- Home, anyone ? 
 AbsenceTime = os.time() - (AbsenceTime * 60); 

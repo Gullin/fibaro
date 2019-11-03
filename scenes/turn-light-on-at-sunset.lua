@@ -70,8 +70,10 @@ function tempFunc()
                 ))
          then
             fibaro:startScene(22) -- Vardag lätt sovbarn-sys
+            fibaro:setGlobal("LastAutoLitForDusk",os.time())
         else
             fibaro:startScene(9) -- Vardag lätt-sys
+            fibaro:setGlobal("LastAutoLitForDusk",os.time())
         end
 
 
