@@ -35,6 +35,7 @@ local LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
 fibaro:debug(" -|- LastSeenChristian: "..os.date("%Y-%m-%d %H:%M:%S",LastSeenChristian)); 
 fibaro:debug(" -|- LastSeenDesiree: "..os.date("%Y-%m-%d %H:%M:%S",LastSeenDesiree));
 fibaro:debug(" -|- LastAutoLitForDusk: "..os.date("%Y-%m-%d %H:%M:%S",LastAutoLitForDusk));
+fibaro:debug(" -|- Tid sedan tändning (min): "..(os.time() - LastAutoLitForDusk)/60);
 
 -- Home, anyone ? 
 AbsenceTime = os.time() - (AbsenceTime * 60); 
