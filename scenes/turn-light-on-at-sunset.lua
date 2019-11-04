@@ -13,6 +13,8 @@
 --    styrs av logiska variabeln isLightSceneManSet
 --  * tänder "Vardag lätt sovbarn-sys" om det tänds efter kl. 19:00
 --  * annars tänds scen "Vardag lätt-sys"
+--  * om hemma vid tändning eller kommer hem inom 120 min. från tändning
+--    tänds kompletterande lampor
 -- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
 --  Titel: Tänd solnedgång
 --  Innehåll: Lampor tändes 90 min innan solnedgång
@@ -26,6 +28,8 @@ end
 local hourNotToLight, minuteNotToLight = 19, 00
 -- Timme och minut för när senast ska tändas
 local hourLatestToLight, minuteLatestToLight = 21, 00
+-- Senast tänt
+local LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
 
 -- döda ev. extra instans av samma scen
 if (fibaro:countScenes() > 1) then
@@ -71,9 +75,11 @@ function tempFunc()
          then
             fibaro:startScene(22) -- Vardag lätt sovbarn-sys
             fibaro:setGlobal("LastAutoLitForDusk",os.time())
+            fibaro:debug(" -|- Scen körd: Vardag lätt sovbarn-sys"); 
         else
             fibaro:startScene(9) -- Vardag lätt-sys
             fibaro:setGlobal("LastAutoLitForDusk",os.time())
+            fibaro:debug(" -|- Scen körd: Vardag lätt-sys"); 
         end
 
 
@@ -84,10 +90,28 @@ function tempFunc()
 
             fibaro:call(BVHallEntreHylla, "turnOn");
             fibaro:call(OVTVByra, "turnOn");
+            fibaro:debug(" -|- Kompletterande lampor: Tänt för hemma"); 
+
+            -- nollställer senast tändning om kompletterande lampor om hemma tändds, eliminera 
+            fibaro:setGlobal("LastAutoLitForDusk",0)
         end 
 
         fibaro:call(tonumber(fibaro:getGlobalValue("mbDessi")), "sendDefinedPushNotification", "76");
         fibaro:call(tonumber(fibaro:getGlobalValue("mbChrille")), "sendDefinedPushNotification", "76");
+    end
+
+
+    -- Kompletterar med tändning av lampor om hemma senare än tändning men inom 120 min. och inte tänt manuellt
+    LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
+    if 
+        (tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 and
+            (os.time() - LastAutoLitForDusk)/60 < 120 and
+            fibaro:getGlobalValue("isLightSceneManSet") == "falskt"
+        )
+    then
+        fibaro:call(BVHallEntreHylla, "turnOn");
+        fibaro:call(OVTVByra, "turnOn");
+        fibaro:debug(" -|- Kompletterande lampor: Tänt kom hem"); 
     end
 
     setTimeout(tempFunc, 60 * 1000)
