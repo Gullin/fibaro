@@ -38,6 +38,8 @@ end
 
 --[[ Bottenplan, Entrehall --]]
 local BVHallEntreHylla = fibaro:getGlobalValue("BVHallEntreHylla")
+--[[ Bottenplan, Sovrum Grå --]]
+local BVSovrumGraByra = fibaro:getGlobalValue("BVSovrumGraByra")
 --[[ Ovanvånning --]]
 local OVTVByra = fibaro:getGlobalValue("OVTVByra")
 
@@ -89,6 +91,7 @@ function tempFunc()
             fibaro:sleep(60000);
 
             fibaro:call(BVHallEntreHylla, "turnOn");
+            fibaro:call(BVSovrumGraByra, "turnOn");
             fibaro:call(OVTVByra, "turnOn");
             fibaro:debug(" -|- Kompletterande lampor: Tänt för hemma"); 
 
@@ -110,6 +113,7 @@ function tempFunc()
         )
     then
         fibaro:call(BVHallEntreHylla, "turnOn");
+        fibaro:call(BVSovrumGraByra, "turnOn");
         fibaro:call(OVTVByra, "turnOn");
         fibaro:debug(" -|- Kompletterande lampor: Tänt kom hem"); 
     end
