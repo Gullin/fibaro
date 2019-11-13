@@ -20,36 +20,41 @@
 --  Innehåll: Lampor tändes 90 min innan solnedgång
 
 -- minuter före solnedgång från global variabel annars 90 min.
-local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"))
+local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"));
 if (minBeforeDusk == nil) then
-    minBeforeDusk = 90
+    minBeforeDusk = 90;
 end
 -- Timme och minut när "Vardag lätt sovbarn-sys" alt. "Vardag lätt-sys" ska användas
-local hourNotToLight, minuteNotToLight = 19, 00
+local hourNotToLight, minuteNotToLight = 19, 00;
 -- Timme och minut för när senast ska tändas
-local hourLatestToLight, minuteLatestToLight = 21, 00
+local hourLatestToLight, minuteLatestToLight = 21, 00;
 -- Senast tänt
 local LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
 
 -- döda ev. extra instans av samma scen
 if (fibaro:countScenes() > 1) then
-    fibaro:abort()
+    fibaro:abort();
 end
 
+-- Kompletterande lampor om hemma
+--[[ Bottenplan, Kök --]]
+local BVKokStringHylla = fibaro:getGlobalValue("BVKokStringHylla");
+local BVKokUnderTrappa = fibaro:getGlobalValue("BVKokUnderTrappa");
 --[[ Bottenplan, Entrehall --]]
-local BVHallEntreHylla = fibaro:getGlobalValue("BVHallEntreHylla")
+local BVHallEntreHylla = fibaro:getGlobalValue("BVHallEntreHylla");
 --[[ Bottenplan, Sovrum Grå --]]
-local BVSovrumGraByra = fibaro:getGlobalValue("BVSovrumGraByra")
+local BVSovrumGraByra = fibaro:getGlobalValue("BVSovrumGraByra");
 --[[ Ovanvånning --]]
-local OVTVByra = fibaro:getGlobalValue("OVTVByra")
+local OVTVByra = fibaro:getGlobalValue("OVTVByra");
 
 
 local sourceTrigger = fibaro:getSourceTrigger()
 function tempFunc()
-    local currentDate = os.date("*t")
+    local currentDate = os.date("*t");
+    local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDate);
     -- Hantera om sommartid (daylightsaving), lägg till en timme
     if (currentDate.isdst) then
-        currentDate.hour = currentDate.hour + 1
+        currentDate.hour = currentDate.hour + 1;
     end
 
     if
@@ -75,13 +80,13 @@ function tempFunc()
                     }
                 ))
          then
-            fibaro:startScene(22) -- Vardag lätt sovbarn-sys
-            fibaro:setGlobal("LastAutoLitForDusk",os.time())
-            fibaro:debug(" -|- Scen körd: Vardag lätt sovbarn-sys"); 
+            fibaro:startScene(22); -- Vardag lätt sovbarn-sys
+            fibaro:setGlobal("LastAutoLitForDusk",os.time());
+            fibaro:debug(currentDate .. " -|- Scen körd: Vardag lätt sovbarn-sys"); 
         else
-            fibaro:startScene(9) -- Vardag lätt-sys
-            fibaro:setGlobal("LastAutoLitForDusk",os.time())
-            fibaro:debug(" -|- Scen körd: Vardag lätt-sys"); 
+            fibaro:startScene(9); -- Vardag lätt-sys
+            fibaro:setGlobal("LastAutoLitForDusk",os.time());
+            fibaro:debug(currentDate .. " -|- Scen körd: Vardag lätt-sys"); 
         end
 
 
@@ -90,13 +95,12 @@ function tempFunc()
             -- Inväntar fortsatt körning för att öka sannolikheten att tidigare körda scener är avslutade
             fibaro:sleep(60000);
 
-            fibaro:call(BVHallEntreHylla, "turnOn");
-            fibaro:call(BVSovrumGraByra, "turnOn");
-            fibaro:call(OVTVByra, "turnOn");
-            fibaro:debug(" -|- Kompletterande lampor: Tänt för hemma"); 
+            AdditionalLightsOn();
+
+            fibaro:debug(currentDate .. " -|- Kompletterande lampor: Tänt för hemma"); 
 
             -- nollställer senast tändning om kompletterande lampor om hemma tändds, eliminera 
-            fibaro:setGlobal("LastAutoLitForDusk",0)
+            fibaro:setGlobal("LastAutoLitForDusk",0);
         end 
 
         fibaro:call(tonumber(fibaro:getGlobalValue("mbDessi")), "sendDefinedPushNotification", "76");
@@ -112,17 +116,48 @@ function tempFunc()
             fibaro:getGlobalValue("isLightSceneManSet") == "falskt"
         )
     then
-        fibaro:call(BVHallEntreHylla, "turnOn");
-        fibaro:call(BVSovrumGraByra, "turnOn");
-        fibaro:call(OVTVByra, "turnOn");
-        fibaro:debug(" -|- Kompletterande lampor: Tänt kom hem"); 
+        AdditionalLightsOn();
+
+        fibaro:debug(currentDate .. " -|- Kompletterande lampor: Tänt kom hem"); 
     end
 
-    setTimeout(tempFunc, 60 * 1000)
+
+    setTimeout(tempFunc, 60 * 1000);
 end
 
+
+function AdditionalLightsOn()
+    fibaro:call(BVKokStringHylla, "turnOn");
+    fibaro:call(BVKokUnderTrappa, "turnOn");
+    fibaro:call(BVHallEntreHylla, "turnOn");
+    fibaro:call(BVSovrumGraByra, "turnOn");
+    fibaro:call(OVTVByra, "turnOn");
+end
+
+
+
+function TimeDateTableToIsoDateFormat(TimeDate)
+    result = TimeDate.year .. "-";
+
+    if (tonumber(TimeDate.month) > 0 and tonumber(TimeDate.month) < 10) then
+        result = result .. "0" .. TimeDate.month .. "-";
+    else
+        result = result .. TimeDate.month .. "-";
+    end
+
+    if (tonumber(TimeDate.day) > 0 and tonumber(TimeDate.day) < 10) then
+        result = result .. "0" .. TimeDate.day;
+    else
+        result = result .. TimeDate.day;
+    end
+
+    return result;
+end
+
+
+
 if (sourceTrigger["type"] == "autostart") then
-    tempFunc()
+    tempFunc();
 else
-    tempFunc()
+    tempFunc();
 end
