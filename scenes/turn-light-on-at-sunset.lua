@@ -82,11 +82,11 @@ function tempFunc()
          then
             fibaro:startScene(22); -- Vardag lätt sovbarn-sys
             fibaro:setGlobal("LastAutoLitForDusk",os.time());
-            fibaro:debug(currentDate .. " -|- Scen körd: Vardag lätt sovbarn-sys"); 
+            fibaro:debug(currentDateIsoFormat .. " -|- Scen körd: Vardag lätt sovbarn-sys"); 
         else
             fibaro:startScene(9); -- Vardag lätt-sys
             fibaro:setGlobal("LastAutoLitForDusk",os.time());
-            fibaro:debug(currentDate .. " -|- Scen körd: Vardag lätt-sys"); 
+            fibaro:debug(currentDateIsoFormat .. " -|- Scen körd: Vardag lätt-sys"); 
         end
 
 
@@ -97,7 +97,7 @@ function tempFunc()
 
             AdditionalLightsOn();
 
-            fibaro:debug(currentDate .. " -|- Kompletterande lampor: Tänt för hemma"); 
+            fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänt för hemma"); 
 
             -- nollställer senast tändning om kompletterande lampor om hemma tändds, eliminera 
             fibaro:setGlobal("LastAutoLitForDusk",0);
@@ -118,7 +118,7 @@ function tempFunc()
     then
         AdditionalLightsOn();
 
-        fibaro:debug(currentDate .. " -|- Kompletterande lampor: Tänt kom hem"); 
+        fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänt kom hem"); 
     end
 
 
