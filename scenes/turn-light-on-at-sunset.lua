@@ -127,6 +127,7 @@ end
 
 
 function AdditionalLightsOn()
+    fibaro:call(BVVardagsrumGran, "turnOn");
     fibaro:call(BVKokStringHylla, "turnOn");
     fibaro:call(BVKokUnderTrappa, "turnOn");
     fibaro:call(BVHallEntreHylla, "turnOn");
