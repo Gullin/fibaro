@@ -18,6 +18,8 @@
 -- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
 --  Titel: Tänd solnedgång
 --  Innehåll: Lampor tändes 90 min innan solnedgång
+-- Beroenden
+--  * Virtuell enhet med enhets-ID 84 och med label lblStatusScen
 
 -- minuter före solnedgång från global variabel annars 90 min.
 local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"));
@@ -122,7 +124,7 @@ function tempFunc()
     end
 
 
-    setTimeout(tempFunc, 60 * 1000);
+    setTimeout(xpcall( tempFunc, MyRrrorHandler ), 60 * 1000);
 end
 
 
@@ -156,9 +158,27 @@ function TimeDateTableToIsoDateFormat(TimeDate)
 end
 
 
+function MyRrrorHandler( errorMsg )
+
+    fibaro:debug(currentDateIsoFormat .. errorMsg); 
+    fibaro:call(84, "setProperty", "ui.lblStatusScen", errorMsg);
+
+end
+
+
 
 if (sourceTrigger["type"] == "autostart") then
-    tempFunc();
+
+    -- Kör huvudfunktion med felhantering
+    if (xpcall( tempFunc, MyRrrorHandler )) then
+        fibaro:call(84, "setProperty", "ui.lblStatusScen", "kör");
+    end
+
 else
-    tempFunc();
+
+    -- Kör huvudfunktion med felhantering
+    if (xpcall( tempFunc, MyRrrorHandler )) then
+        fibaro:call(84, "setProperty", "ui.lblStatusScen", "kör");
+    end
+
 end
