@@ -13,13 +13,17 @@
 --    styrs av logiska variabeln isLightSceneManSet
 --  * tänder "Vardag lätt sovbarn-sys" om det tänds efter kl. 19:00
 --  * annars tänds scen "Vardag lätt-sys"
---  * om hemma vid tändning eller kommer hem inom 120 min. från tändning
---    tänds kompletterande lampor
+--  * om hemma vid tändning eller kommer hem inom 120 min. (styrs av variabel 
+--    homeWithIn) från tändning tänds kompletterande lampor
 -- Definierad push-notifiering, ID:t hittas genom Fibaro-API http://.../api/panels/notifications
 --  Titel: Tänd solnedgång
 --  Innehåll: Lampor tändes 90 min innan solnedgång
 -- Beroenden
 --  * Virtuell enhet med enhets-ID 84 och med label lblStatusScen
+
+
+-- Debug
+local debug = true;
 
 -- minuter före solnedgång från global variabel annars 90 min.
 local minBeforeDusk = tonumber(fibaro:getGlobalValue("minBeforeDusk"));
@@ -30,6 +34,8 @@ end
 local hourNotToLight, minuteNotToLight = 19, 00;
 -- Timme och minut för när senast ska tändas
 local hourLatestToLight, minuteLatestToLight = 21, 00;
+-- Kompletterande lampor tänds om hemma inom tidsintervall (minuter)
+local homeWithIn = 120;
 -- Senast tänt
 local LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
 
@@ -52,22 +58,57 @@ local OVTVByra = fibaro:getGlobalValue("OVTVByra");
 
 local sourceTrigger = fibaro:getSourceTrigger()
 function tempFunc()
-    local currentDate = os.date("*t");
-    local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDate);
+    local currentDateTime = os.date("*t");
+    local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDateTime);
     -- Hantera om sommartid (daylightsaving), lägg till en timme
-    if (currentDate.isdst) then
-        currentDate.hour = currentDate.hour + 1;
+    if (currentDateTime.isdst) then
+        -- currentDateTime.hour = currentDateTime.hour + 1;
+        if debug then fibaro:debug(currentDateIsoFormat .. " -|- Sommartid") end;
+    else
+        if debug then fibaro:debug(currentDateIsoFormat .. " -|- Vintertid") end; 
     end
 
+    local currentTime = os.date("%H:%M", os.time(currentDateTime));
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- currentTime : " .. currentTime) end;
+    local timeBeforeDusk = os.date("%H:%M", 
+        os.time(
+            {
+                year = currentDateTime.year,
+                month = currentDateTime.month,
+                day = currentDateTime.day,
+                hour = (currentDateTime.hour + math.floor(minBeforeDusk/60)),
+                min = (currentDateTime.min + (minBeforeDusk - math.floor(minBeforeDusk/60)*60))
+            })
+    );
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- timeBeforeDusk : " .. timeBeforeDusk) end;
+
+
+
+    local timeLatestTolight = os.date("%H:%M", 
+        os.time(
+            {
+                year = currentDateTime.year,
+                month = currentDateTime.month,
+                day = currentDateTime.day,
+                hour = hourLatestToLight,
+                min = minuteLatestToLight
+            })
+    );
+
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- isLightSceneManSet : " .. fibaro:getGlobalValue("isLightSceneManSet")) end;
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- sunsetHour (kalkylerat) : " .. fibaro:getValue(1, "sunsetHour") .. " (" .. timeBeforeDusk .. ")" ) end;
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- hourLatestToLight:minuteLatestToLight (kalkylerat) : " .. timeLatestTolight .. " (" .. currentTime .. ")") end;
+
     if
-        ((currentDate.wday == 1 or currentDate.wday == 2 or currentDate.wday == 3 or currentDate.wday == 4 or
-            currentDate.wday == 5 or
-            currentDate.wday == 6 or
-            currentDate.wday == 7) and
-            ((os.date("%H:%M", os.time() + minBeforeDusk * 60) == fibaro:getValue(1, "sunsetHour")) or
-                (os.date("%H:%M", os.time()) == (hourLatestToLight .. ":" .. minuteLatestToLight))) and
+        ((currentDateTime.wday == 1 or currentDateTime.wday == 2 or currentDateTime.wday == 3 or currentDateTime.wday == 4 or
+            currentDateTime.wday == 5 or
+            currentDateTime.wday == 6 or
+            currentDateTime.wday == 7) and
+            ((timeBeforeDusk == fibaro:getValue(1, "sunsetHour")) or
+                (currentTime == timeLatestTolight)) and
             fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
      then
+
         -- om aktuell tid är större än (mer än) kl. 19:00 körs if
         -- annars om klockan är mindre än eller lika med kl. 19:00 körs else
         if
@@ -84,24 +125,27 @@ function tempFunc()
          then
             fibaro:startScene(22); -- Vardag lätt sovbarn-sys
             fibaro:setGlobal("LastAutoLitForDusk",os.time());
-            fibaro:debug(currentDateIsoFormat .. " -|- Scen körd: Vardag lätt sovbarn-sys"); 
+            if debug then fibaro:debug(currentDateIsoFormat .. " -|- Scen körd: Vardag lätt sovbarn-sys") end;
         else
             fibaro:startScene(9); -- Vardag lätt-sys
             fibaro:setGlobal("LastAutoLitForDusk",os.time());
-            fibaro:debug(currentDateIsoFormat .. " -|- Scen körd: Vardag lätt-sys"); 
+            if debug then fibaro:debug(currentDateIsoFormat .. " -|- Scen körd: Vardag lätt-sys") end;
         end
 
 
         -- hantering av lampor vid enheter hemma (knuten till phone-check-indicate-home)
-        if tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 then  
+        if (fibaro:getGlobalValue("LastSeenHemma") == "1") then
+
+            if debug then fibaro:debug("Hemma, tänder ytterligare lampor") end;
+
             -- Inväntar fortsatt körning för att öka sannolikheten att tidigare körda scener är avslutade
-            fibaro:sleep(60000);
+            fibaro:sleep(30000);
 
             AdditionalLightsOn();
 
-            fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänt för hemma"); 
+            if debug then fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänder, är hemma") end;
 
-            -- nollställer senast tändning om kompletterande lampor om hemma tändds, eliminera 
+            -- nollställer senast tändning om kompletterande lampor om hemma tänds, eliminera
             fibaro:setGlobal("LastAutoLitForDusk",0);
         end 
 
@@ -112,28 +156,48 @@ function tempFunc()
 
     -- Kompletterar med tändning av lampor om hemma senare än tändning men inom 120 min. och inte tänt manuellt
     LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
+    -- fibaro:debug(currentDateIsoFormat .. " -|- Minuter sedan autotänt: " .. tostring((os.time() - LastAutoLitForDusk)/60));
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|- Tid sedan autotänt: " .. SecondsToClock(os.time() - LastAutoLitForDusk)) end;
     if 
         (tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 and
-            (os.time() - LastAutoLitForDusk)/60 < 120 and
+            (os.time() - LastAutoLitForDusk)/60 < homeWithIn and
             fibaro:getGlobalValue("isLightSceneManSet") == "falskt"
         )
     then
         AdditionalLightsOn();
 
-        fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänt kom hem"); 
+        if debug then fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänder, kom hem inom " .. tostring(homeWithIn) .. " min.") end;
     end
 
 
-    setTimeout(xpcall( tempFunc, MyRrrorHandler ), 60 * 1000);
+    fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "kör");
+
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-") end;
+    setTimeout( function()
+        status = xpcall( tempFunc, MyRrrorHandler )
+    end , 60 * 1000);
 end
 
 
 function AdditionalLightsOn()
-    fibaro:call(BVVardagsrumGran, "turnOn");
     fibaro:call(BVKokStringHylla, "turnOn");
     fibaro:call(BVKokUnderTrappa, "turnOn");
     fibaro:call(BVHallEntreHylla, "turnOn");
-    fibaro:call(BVSovrumGraByra, "turnOn");
+    -- Barnrum, tänder om innan viss tidpunkt
+    if
+        (os.time() <=
+            os.time(
+                {
+                    year = os.date("*t").year,
+                    month = os.date("*t").month,
+                    day = os.date("*t").day,
+                    hour = hourNotToLight,
+                    min = minuteNotToLight
+                }
+            ))
+    then
+        fibaro:call(BVSovrumGraByra, "turnOn");
+    end
     fibaro:call(OVTVByra, "turnOn");
 end
 
@@ -158,10 +222,34 @@ function TimeDateTableToIsoDateFormat(TimeDate)
 end
 
 
+
+function SecondsToClock(seconds)
+    local seconds = tonumber(seconds)
+  
+    if seconds <= 0 then
+        return "00:00:00";
+    else
+        days = string.format("%02.f", math.floor(seconds/(3600*24)));
+        hours = string.format("%02.f", math.floor(seconds/3600) - (days*24));
+        mins = string.format("%02.f", math.floor(seconds/60  - (days*24*60)- (hours*60)));
+        secs = string.format("%02.f", math.floor(seconds - (days*24*3600) - hours*3600 - mins *60));
+        return days .. " dag(ar) " .. hours..":"..mins..":"..secs
+    end
+  end
+
+
+
 function MyRrrorHandler( errorMsg )
 
-    fibaro:debug(currentDateIsoFormat .. errorMsg); 
-    fibaro:call(84, "setProperty", "ui.lblStatusScen", errorMsg);
+    local currentDate = os.date("*t");
+    local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDate);
+
+    if (errorMsg == nil or errorMsg ~= "") then
+        errorMsg = "Okänt fel";
+    end
+
+    fibaro:debug("ERROR (" .. currentDateIsoFormat .. "): " .. errorMsg); 
+    fibaro:call(84, "setProperty", "ui.lblStatusScen.value", errorMsg);
 
 end
 
@@ -169,16 +257,36 @@ end
 
 if (sourceTrigger["type"] == "autostart") then
 
+    local currentDate = os.date("*t");
+    local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDate);
+
+    fibaro:debug(currentDateIsoFormat .. " -|- Kör, autostart"); 
+    fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-"); 
+
     -- Kör huvudfunktion med felhantering
-    if (xpcall( tempFunc, MyRrrorHandler )) then
-        fibaro:call(84, "setProperty", "ui.lblStatusScen", "kör");
+    status = xpcall( tempFunc, MyRrrorHandler );
+    if (status) then
+        fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "kör");
+    else
+        fibaro:debug("FEL"); 
+        fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "fel");
     end
 
 else
 
+    local currentDate = os.date("*t");
+    local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDate);
+
+    fibaro:debug(currentDateIsoFormat .. " -|- Kör, startat annat än autostart"); 
+    fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-"); 
+
     -- Kör huvudfunktion med felhantering
-    if (xpcall( tempFunc, MyRrrorHandler )) then
-        fibaro:call(84, "setProperty", "ui.lblStatusScen", "kör");
+    status = xpcall( tempFunc, MyRrrorHandler );
+    if (status) then
+        fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "kör");
+    else
+        fibaro:debug("FEL"); 
+        fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "fel");
     end
 
 end
