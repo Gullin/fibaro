@@ -96,17 +96,22 @@ function tempFunc()
     );
 
     if debug then fibaro:debug(currentDateIsoFormat .. " -|---- isLightSceneManSet : " .. fibaro:getGlobalValue("isLightSceneManSet")) end;
-    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- sunsetHour (kalkylerat) : " .. fibaro:getValue(1, "sunsetHour") .. " (" .. timeBeforeDusk .. ")" ) end;
-    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- hourLatestToLight:minuteLatestToLight (kalkylerat) : " .. timeLatestTolight .. " (" .. currentTime .. ")") end;
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- sunsetHour (timeBeforeDusk) : " .. fibaro:getValue(1, "sunsetHour") .. " (" .. timeBeforeDusk .. ")" ) end;
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- hourLatestToLight:minuteLatestToLight (currentTime) : " .. timeLatestTolight .. " (" .. currentTime .. ")") end;
+
+
+    LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
+    local LastAutoLitForDuskDateIsoFormat = TimeDateTableToIsoDateFormat(os.date("*t", LastAutoLitForDusk));
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---- currentDateIsoFormat (LastAutoLitForDuskDateIsoFormat) : " .. currentDateIsoFormat .. " (" .. LastAutoLitForDuskDateIsoFormat .. ")") end;
 
     if
         ((currentDateTime.wday == 1 or currentDateTime.wday == 2 or currentDateTime.wday == 3 or currentDateTime.wday == 4 or
             currentDateTime.wday == 5 or
             currentDateTime.wday == 6 or
             currentDateTime.wday == 7) and
-            ((timeBeforeDusk == fibaro:getValue(1, "sunsetHour")) or
-                (currentTime == timeLatestTolight)) and
-            fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
+         ((timeBeforeDusk == fibaro:getValue(1, "sunsetHour")) or
+          (currentTime == timeLatestTolight and currentDateIsoFormat ~= LastAutoLitForDuskDateIsoFormat)) and
+         fibaro:getGlobalValue("isLightSceneManSet") == "falskt")
      then
 
         -- om aktuell tid är större än (mer än) kl. 19:00 körs if
