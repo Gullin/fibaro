@@ -149,9 +149,6 @@ function tempFunc()
             AdditionalLightsOn();
 
             if debug then fibaro:debug(currentDateIsoFormat .. " -|- Kompletterande lampor: Tänder, är hemma") end;
-
-            -- nollställer senast tändning om kompletterande lampor om hemma tänds, eliminera
-            fibaro:setGlobal("LastAutoLitForDusk",0);
         end 
 
         fibaro:call(tonumber(fibaro:getGlobalValue("mbDessi")), "sendDefinedPushNotification", "76");
