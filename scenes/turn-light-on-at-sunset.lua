@@ -52,8 +52,12 @@ local BVKokUnderTrappa = fibaro:getGlobalValue("BVKokUnderTrappa");
 local BVHallEntreHylla = fibaro:getGlobalValue("BVHallEntreHylla");
 --[[ Bottenplan, Sovrum Grå --]]
 local BVSovrumGraByra = fibaro:getGlobalValue("BVSovrumGraByra");
+local BVSovrumGraInnerst = fibaro:getGlobalValue("BVSovrumGraInnerst");
+--[[ Bottenplan, Sovrum Blå --]]
+local BVSovrumBlaHallvag = fibaro:getGlobalValue("BVSovrumBlaHallvag");
 --[[ Ovanvånning --]]
 local OVTVByra = fibaro:getGlobalValue("OVTVByra");
+local OVGavelrumSkrivbor = fibaro:getGlobalValue("OVGavelrumSkrivbor");
 
 
 local sourceTrigger = fibaro:getSourceTrigger()
@@ -160,6 +164,7 @@ function tempFunc()
     LastAutoLitForDusk = 0+fibaro:getGlobal("LastAutoLitForDusk");
     -- fibaro:debug(currentDateIsoFormat .. " -|- Minuter sedan autotänt: " .. tostring((os.time() - LastAutoLitForDusk)/60));
     if debug then fibaro:debug(currentDateIsoFormat .. " -|- Tid sedan autotänt: " .. SecondsToClock(os.time() - LastAutoLitForDusk)) end;
+    --TODO: Behöver även kontrollera om kompletterande tändning har gjorts, ska då ej köras
     if 
         (tonumber(fibaro:getGlobalValue("LastSeenHemma")) == 1 and
             (os.time() - LastAutoLitForDusk)/60 < homeWithIn and
@@ -199,6 +204,9 @@ function AdditionalLightsOn()
             ))
     then
         fibaro:call(BVSovrumGraByra, "turnOn");
+        fibaro:call(BVSovrumGraInnerst, "turnOn");
+        fibaro:call(BVSovrumBlaHallvag, "turnOn");
+        fibaro:call(OVGavelrumSkrivbor, "turnOn");
     end
     fibaro:call(OVTVByra, "turnOn");
 end
