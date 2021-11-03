@@ -181,7 +181,7 @@ function tempFunc()
 
     if debug then fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-") end;
     setTimeout( function()
-        status = xpcall( tempFunc, MyRrrorHandler )
+        status = xpcall( tempFunc, MyErrorHandler )
     end , 60 * 1000);
 end
 
@@ -249,7 +249,7 @@ function SecondsToClock(seconds)
 
 
 
-function MyRrrorHandler( errorMsg )
+function MyErrorHandler( errorMsg )
 
     local currentDate = os.date("*t");
     local currentDateIsoFormat = TimeDateTableToIsoDateFormat(currentDate);
@@ -274,7 +274,7 @@ if (sourceTrigger["type"] == "autostart") then
     fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-"); 
 
     -- Kör huvudfunktion med felhantering
-    status = xpcall( tempFunc, MyRrrorHandler );
+    status = xpcall( tempFunc, MyErrorHandler );
     if (status) then
         fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "kör");
     else
@@ -291,7 +291,7 @@ else
     fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-"); 
 
     -- Kör huvudfunktion med felhantering
-    status = xpcall( tempFunc, MyRrrorHandler );
+    status = xpcall( tempFunc, MyErrorHandler );
     if (status) then
         fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "kör");
     else
