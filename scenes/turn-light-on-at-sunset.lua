@@ -179,7 +179,7 @@ function tempFunc()
 
     fibaro:call(84, "setProperty", "ui.lblStatusScen.value", "kör");
 
-    if debug then fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-") end;
+    if debug then fibaro:debug(currentDateIsoFormat .. " -|---------------------------------|-\n") end;
     setTimeout( function()
         status = xpcall( tempFunc, MyErrorHandler )
     end , 60 * 1000);
